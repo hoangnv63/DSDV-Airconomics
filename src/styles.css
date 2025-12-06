@@ -60,13 +60,13 @@ body {
 
 /* Header */
 .header {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(35, 35, 35, 1);
     backdrop-filter: blur(10px);
     padding: 1rem 2rem;
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 .header-content {
@@ -101,7 +101,7 @@ body {
 }
 
 .nav-link {
-    color: var(--text-dark);
+    color: #f0f0f0; 
     text-decoration: none;
     font-weight: 500;
     font-size: 0.95rem;
@@ -112,13 +112,13 @@ body {
 }
 
 .nav-link:hover {
-    color: var(--primary);
-    background: var(--secondary);
+    color: #ffffff;
+    background: rgba(255,255,255,0.1);
 }
 
 .nav-link.active {
-    background: var(--primary);
-    color: var(--white);
+    background: #5a9f6b;
+    color: white;
 }
 
 /* Main Content */
