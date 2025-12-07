@@ -3,13 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project</title> 
-    <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
-   
+    <title>EcoViz - Environmental Data Visualization</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
-    <h1 class="header">Data science and data visualization</h1>
-    <svg id="plot" width="1000" height="600"></svg>
+    <div class="page-container">
+        <!-- Background -->
+        <div class="background"></div>
+
+        <!-- Header Navigation -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 6C9.79 6 8 7.79 8 10C8 11.5 9 12.8 10.3 13.3C9.5 13.9 9 14.9 9 16C9 18.2 10.8 20 13 20"
+                              fill="currentColor"/>
+                    </svg>
+                    <span>Airconomics</span>
+                </div>
+
+                <nav class="navigation">
+                    <a href="#" class="nav-link active" data-chart="home">Home</a>
+                    <a href="#" class="nav-link" data-chart="aqi">Chart 1</a>
+                    <a href="#" class="nav-link" data-chart="emissions">Chart 2</a>
+                    <a href="#" class="nav-link" data-chart="forest">Chart 3</a>
+                </nav>
+            </div>
+        </header>
+
+        
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 Airconomics - IU Data Science and Data Visualization. Together for a sustainable future.</p>
+            <p>Nguyen Huynh Ngan Anh, Nguyen Viet Hoang, Vu Nhu Hue Lan</p>
+        </footer>
+    </div>
+
     <script src="plot.js"></script>
 </body>
 </html>
