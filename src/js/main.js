@@ -16,3 +16,31 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.initChart2) window.initChart2();
   if (window.initChart3) window.initChart3();
 });
+
+// Sections to observe
+const sections = document.querySelectorAll("main section");
+const navLinks = document.querySelectorAll(".nav-link");
+
+const observerOptions = {
+  root: null,
+  rootMargin: "0px",
+  threshold: 0.5, 
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navLinks.forEach(link => {
+        if (link.dataset.target === "#" + id || link.dataset.target === id) {
+          link.classList.add("active");
+        } else {
+          link.classList.remove("active");
+        }
+      });
+    }
+  });
+}, observerOptions);
+
+// Start observing each chart section
+sections.forEach(section => observer.observe(section));
