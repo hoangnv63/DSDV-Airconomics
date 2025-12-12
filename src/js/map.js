@@ -7,11 +7,11 @@ window.initChart3 = async function () {
     );
     const csv = await d3.csv("../data/processed_data.csv");
 
-    const years = Object.keys(csv[0])
-    .filter(k => k.startsWith("pm25_"))
-    .map(k => parseInt(k.replace("pm25_", "")))
-    .filter(y => y >= 1990 && y <= 2021)
-    .sort((a, b) => a - b);  
+    const years = Array.from(new Set(csv
+        .filter(d => d.factor === "pm25")
+        .map(d => +d.year)))
+        .filter(y => y >= 1990 && y <= 2021)
+        .sort((a, b) => a - b);
 
     const slider = document.getElementById("yearSlider");
     const label = document.getElementById("yearLabel");
@@ -54,17 +54,16 @@ window.initChart3 = async function () {
     const path = d3.geoPath().projection(projection);
 
     function makeLookup(year) {
-        const field = "pm25_" + year;
         const map = new Map();
-
         csv.forEach(d => {
+            if (d.factor !== "pm25") return;
+            if (+d.year !== year) return;
             const iso = (d.REF_AREA || "").trim().toUpperCase();
-            let v = d[field];
+            let v = d.value;
             if (v) v = v.toString().trim().replace(",", ".");
             const num = parseFloat(v);
             if (iso && !isNaN(num)) map.set(iso, num);
         });
-
         return map;
     }
 
