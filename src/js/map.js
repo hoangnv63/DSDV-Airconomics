@@ -26,13 +26,6 @@ window.initChart3 = async function () {
     const tooltip = d3.select("body")
         .append("div")
         .attr("class", "tooltip")
-        .style("position", "fixed")
-        .style("pointer-events", "none")
-        .style("z-index", 999999)
-        .style("background", "#fff")
-        .style("padding", "8px 12px")
-        .style("border-radius", "6px")
-        .style("box-shadow", "0 4px 12px rgba(0,0,0,0.15)")
         .style("opacity", 0);
 
     const container = d3.select("#chart3");
@@ -77,6 +70,7 @@ window.initChart3 = async function () {
         .attr("d", path)
         .attr("stroke", "#222")
         .attr("stroke-width", 0.8)
+        .attr("pointer-events", "all")
         .attr("fill", d => {
             const iso = (d.id || "").trim().toUpperCase();
             const val = dataMap.get(iso);
@@ -99,8 +93,9 @@ window.initChart3 = async function () {
                 .attr("stroke", "#000");
         })
         .on("mousemove", event => {
-            tooltip.style("left", event.clientX + 14 + "px");
-            tooltip.style("top", event.clientY + 14 + "px");
+            tooltip
+                .style("left", (event.pageX + 14) + "px")
+                .style("top", (event.pageY + 14) + "px");
         })
         .on("mouseout", event => {
             tooltip.style("opacity", 0);

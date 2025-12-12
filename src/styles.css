@@ -238,6 +238,21 @@ main {
   font-weight: bold;
 }
 
+.tooltip {
+    position: absolute; 
+    pointer-events: none;
+    z-index: 999999;
+    background: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    opacity: 0;
+    font-size: 0.9rem;
+    color: #000;
+    white-space: nowrap;
+}
+
+
 /* Footer */
 .footer {
   background: rgba(90, 159, 107, 0.1);

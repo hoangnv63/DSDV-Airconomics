@@ -1,4 +1,3 @@
-// js/line.js
 window.initLineChart = async function () {
     const data = await d3.csv("../data/processed_data.csv");
     const pmData = data.filter(d => d.factor === "pm25");
@@ -213,17 +212,18 @@ window.initLineChart = async function () {
         .style("font-size", "14px")
         .text("PM2.5");
 
-    // Tooltip
     const tooltip = d3.select("body").append("div")
         .attr("class", "tooltip")
-        .style("position", "fixed")
+        .style("position", "absolute") 
         .style("pointer-events", "none")
         .style("z-index", 9999)
         .style("background", "#fff")
         .style("padding", "6px 12px")
         .style("border-radius", "4px")
         .style("box-shadow", "0 4px 12px rgba(0,0,0,0.15)")
-        .style("opacity", 0);
+        .style("opacity", 0)
+        .style("font-size", "0.9rem")
+        .style("color", "#000");
 
     const hoverLine = svg.append("line")
         .attr("stroke", "#555")
@@ -290,31 +290,29 @@ window.initLineChart = async function () {
             .on("mousemove", function(event) {
                 const [mx] = d3.pointer(event);
                 const year = Math.round(x.invert(mx));
-                if(year < 1990 || year > 2021) return;
+                if (year < 1990 || year > 2021) return;
 
                 hoverLine.attr("x1", x(year)).attr("x2", x(year)).style("opacity", 1);
 
                 const tooltipHTML = [
-                    // World first
                     (() => {
                         const val = worldData.find(d => +d.year === year);
                         return val ? `<span style="color:black"><strong>World</strong></span>: ${val.value}` : '';
                     })(),
-                    // Selected countries
                     ...selectedCountries.map(c => {
                         const val = pmData.find(d => d.REF_AREA_LABEL === c && +d.year === year);
                         return val ? `<span style="color:${countryColorMap[c]}"><strong>${c}</strong></span>: ${val.value}` : '';
                     })
                 ].filter(Boolean).join("<br>");
 
-                if(tooltipHTML) {
-                    tooltip.html(tooltipHTML)
-                        .style("left", (event.pageX + 12) + "px")
-                        .style("top", (event.pageY + 12) + "px")
-                        .style("opacity", 1);
-                } else {
-                    tooltip.style("opacity", 0);
-                }
+                tooltip.html(tooltipHTML)
+                    .style("left", (event.pageX + 12) + "px")
+                    .style("top", (event.pageY + 12) + "px")
+                    .style("opacity", tooltipHTML ? 1 : 0);
+            })
+            .on("mouseout", () => {
+                hoverLine.style("opacity", 0);
+                tooltip.style("opacity", 0);
             })
             .on("mouseout", function() {
                 hoverLine.style("opacity", 0);
