@@ -5,44 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoViz - Environmental Data Visualization</title>
     <link rel="stylesheet" href="styles.css">
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
     <div class="page-container">
-        <!-- Background -->
         <div class="background"></div>
 
-        <!-- Header Navigation -->
         <header class="header">
             <div class="header-content">
                 <div class="logo">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                         xmlns="http://www.w3.org/2000/svg">
+                        xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                         <path d="M12 6C9.79 6 8 7.79 8 10C8 11.5 9 12.8 10.3 13.3C9.5 13.9 9 14.9 9 16C9 18.2 10.8 20 13 20"
-                              fill="currentColor"/>
+                            fill="currentColor"/>
                     </svg>
                     <span>Airconomics</span>
                 </div>
 
                 <nav class="navigation">
-                    <a href="#" class="nav-link active" data-chart="home">Home</a>
-                    <a href="#" class="nav-link" data-chart="aqi">Chart 1</a>
-                    <a href="#" class="nav-link" data-chart="emissions">Chart 2</a>
-                    <a href="#" class="nav-link" data-chart="forest">Chart 3</a>
+                    <a href="#" class="nav-link" data-target="home">Home</a>
+                    <a href="#" class="nav-link" data-target="#chart1-section">Chart 1</a>
+                    <a href="#" class="nav-link" data-target="#chart2-section">Chart 2</a>
+                    <a href="#" class="nav-link" data-target="#chart3-section">World Map</a>
                 </nav>
             </div>
         </header>
 
-        
+        <main>
+            <section id="chart1-section" class="chart-section">
+                <div class="chart-wrapper">
+                    <div class="section-header">
+                        <h2>Chart 1 — GDP vs PM2.5 (bubble)</h2>
+                        <p>Bubble size = population. X-axis = GDP (log), Y-axis = PM2.5</p>
+                    </div>
+                    <div id="chart1" class="chart-container"></div>
+                </div>
+            </section>
 
-        <!-- Footer -->
+            <section id="chart2-section" class="chart-section">
+                <div class="chart-wrapper">
+                    <div class="section-header">
+                        <h2>Chart 2 — Global PM2.5 Trend</h2>
+                        <p>Average PM2.5 across all countries by year (line chart)</p>
+                    </div>
+                    <div id="chart2" class="chart-container"></div>
+                </div>
+            </section>
+
+            <section id="chart3-section" class="chart-section">
+                <div class="chart-wrapper">
+                    <div class="section-header">
+                        <h2>Chart 3 — World Map (PM2.5)</h2>
+                        <p>Choropleth of PM2.5 for a chosen year</p>
+                    </div>
+
+                    <div class="year-control">
+                        <label>Year: <span id="yearLabel">2020</span></label>
+                        <input id="yearSlider" type="range" min="1990" max="2021" value="2019" step="1">
+                    </div>
+
+                    <div id="chart3" class="chart-container"></div>
+                </div>
+            </section>
+        </main>
+
         <footer class="footer">
-            <p>&copy; 2025 Airconomics - IU Data Science and Data Visualization. Together for a sustainable future.</p>
+            <p>&copy; 2025 Airconomics - IU Data Science and Data Visualization.</p>
             <p>Nguyen Huynh Ngan Anh, Nguyen Viet Hoang, Vu Nhu Hue Lan</p>
         </footer>
     </div>
 
-    <script src="plot.js"></script>
+    <script src="js/plot.js"></script>
+    <script src="js/chart2.js"></script>
+    <script src="js/chart3.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
