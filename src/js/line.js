@@ -2,7 +2,14 @@
 window.initLineChart = async function () {
     const data = await d3.csv("../data/processed_data.csv");
     const pmData = data.filter(d => d.factor === "pm25");
-    const allCountries = Array.from(new Set(pmData.map(d => d.REF_AREA_LABEL))).sort();
+
+    // Separate World data
+    const worldData = pmData.filter(d => d.REF_AREA_LABEL === "World");
+
+    const allCountries = Array.from(new Set(pmData
+        .map(d => d.REF_AREA_LABEL)
+        .filter(c => c !== "World"))) // exclude World
+        .sort();
 
     // Container
     const containerDiv = d3.select("#chart2").classed("chart-container", true);
@@ -110,6 +117,24 @@ window.initLineChart = async function () {
 
     function updateLegend() {
         legendContainer.selectAll("*").remove();
+
+        // Add World legend
+        const worldLegend = legendContainer.append("div")
+            .style("display", "flex")
+            .style("align-items", "center")
+            .style("gap", "6px");
+
+        worldLegend.append("div")
+            .style("width", "16px")
+            .style("height", "2px")
+            .style("background-color", "#000")
+            .style("border-top", "2px dashed black");
+
+        worldLegend.append("span")
+            .text("World (dashed line)")
+            .style("font-size", "0.9rem")
+            .style("color", "#333");
+
         selectedCountries.forEach(c => {
             const item = legendContainer.append("div")
                 .style("display", "flex")
@@ -210,6 +235,22 @@ window.initLineChart = async function () {
     function updateChart() {
         svg.selectAll(".line-group").remove();
 
+        // Draw World line (always visible, black, dashed)
+        const worldLineGen = d3.line()
+            .defined(d => d.value !== "")
+            .x(d => x(+d.year))
+            .y(d => y(+d.value))
+            .curve(d3.curveMonotoneX);
+
+        svg.append("path")
+            .datum(worldData)
+            .attr("fill", "none")
+            .attr("stroke", "#000")
+            .attr("stroke-width", 2)
+            .attr("stroke-dasharray", "6 4")
+            .attr("d", worldLineGen);
+
+        // Draw selected countries
         selectedCountries.forEach((country) => {
             const countryData = pmData.filter(d => d.REF_AREA_LABEL === country)
                 .sort((a,b) => +a.year - +b.year);
@@ -253,10 +294,18 @@ window.initLineChart = async function () {
 
                 hoverLine.attr("x1", x(year)).attr("x2", x(year)).style("opacity", 1);
 
-                const tooltipHTML = selectedCountries.map(c => {
-                    const val = pmData.find(d => d.REF_AREA_LABEL === c && +d.year === year);
-                    return val ? `<span style="color:${countryColorMap[c]}"><strong>${c}</strong></span>: ${val.value}` : '';
-                }).filter(Boolean).join("<br>");
+                const tooltipHTML = [
+                    // World first
+                    (() => {
+                        const val = worldData.find(d => +d.year === year);
+                        return val ? `<span style="color:black"><strong>World</strong></span>: ${val.value}` : '';
+                    })(),
+                    // Selected countries
+                    ...selectedCountries.map(c => {
+                        const val = pmData.find(d => d.REF_AREA_LABEL === c && +d.year === year);
+                        return val ? `<span style="color:${countryColorMap[c]}"><strong>${c}</strong></span>: ${val.value}` : '';
+                    })
+                ].filter(Boolean).join("<br>");
 
                 if(tooltipHTML) {
                     tooltip.html(tooltipHTML)
@@ -274,8 +323,7 @@ window.initLineChart = async function () {
     }
 
     // Initial selection
-    selectedCountries = ["Afghanistan", "Albania"];
-    selectedCountries.forEach(c => countryColorMap[c] = color(c));
+    selectedCountries = [];
     updateSelectedList();
     updateLegend();
     updateChart();
