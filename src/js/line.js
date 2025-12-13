@@ -49,7 +49,7 @@ window.initLineChart = async function () {
         .style("cursor", "pointer");
 
     const deleteButton = selectionBar.append("button")
-        .text("Delete Selected")
+        .text("Delete Country")
         .style("background-color", "#f44336")
         .style("color", "white")
         .style("border", "none")
@@ -106,7 +106,7 @@ window.initLineChart = async function () {
                 const el = d3.select(this);
                 const isSelected = !el.classed("selected");
                 el.classed("selected", isSelected)
-                  .style("background-color", isSelected ? "#4CAF50" : "#eee")
+                  .style("background-color", isSelected ? "#859100ff" : "#eee")
                   .style("color", isSelected ? "#fff" : "#000");
             })
             .merge(items);
@@ -126,8 +126,8 @@ window.initLineChart = async function () {
         worldLegend.append("div")
             .style("width", "16px")
             .style("height", "2px")
-            .style("background-color", "#000")
-            .style("border-top", "2px dashed black");
+            .attr("stroke", "#16e74aff")
+            .style("border-top", "2px dashed #16e74aff");
 
         worldLegend.append("span")
             .text("World (dashed line)")
@@ -245,7 +245,7 @@ window.initLineChart = async function () {
         svg.append("path")
             .datum(worldData)
             .attr("fill", "none")
-            .attr("stroke", "#000")
+            .attr("stroke", "#16e74aff")
             .attr("stroke-width", 2)
             .attr("stroke-dasharray", "6 4")
             .attr("d", worldLineGen);
@@ -295,6 +295,7 @@ window.initLineChart = async function () {
                 hoverLine.attr("x1", x(year)).attr("x2", x(year)).style("opacity", 1);
 
                 const tooltipHTML = [
+                    `<strong>Year:</strong> ${year}`,
                     (() => {
                         const val = worldData.find(d => +d.year === year);
                         return val ? `<span style="color:black"><strong>World</strong></span>: ${val.value}` : '';
