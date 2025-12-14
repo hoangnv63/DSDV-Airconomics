@@ -77,6 +77,19 @@
                         <h2>Chart 1 — GDP vs PM2.5 (bubble)</h2>
                         <p>Bubble size = population. X-axis = GDP (log), Y-axis = PM2.5</p>
                     </div>
+                    <div class="chart-controls">
+                        <button id="playBtn">▶ Play</button>
+                        <label>
+                            Region:
+                            <select id="regionFilter">
+                            <option value="all">All</option>
+                            </select>
+                        </label>
+                        <label>
+                            Year: <span id="yearLabel">1990</span>
+                        </label>
+                        <input id="yearSlider" type="range" min="1990" max="2021" step="1">
+                        </div>
                     <div id="chart1" class="chart-container"></div>
                 </div>
             </section>
