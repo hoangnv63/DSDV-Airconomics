@@ -126,8 +126,8 @@ window.initLineChart = async function () {
         worldLegend.append("div")
             .style("width", "16px")
             .style("height", "2px")
-            .attr("stroke", "#16e74aff")
-            .style("border-top", "2px dashed #16e74aff");
+            .attr("stroke", "#007a1fff")
+            .style("border-top", "2px dashed #007a1fff");
 
         worldLegend.append("span")
             .text("World (dashed line)")
@@ -245,7 +245,7 @@ window.initLineChart = async function () {
         svg.append("path")
             .datum(worldData)
             .attr("fill", "none")
-            .attr("stroke", "#16e74aff")
+            .attr("stroke", "#007a1fff")
             .attr("stroke-width", 2)
             .attr("stroke-dasharray", "6 4")
             .attr("d", worldLineGen);
