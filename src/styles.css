@@ -347,3 +347,47 @@ main {
   color: var(--text-light);
   margin-top: 1.5rem;
 }
+
+/* Dataset table styling */
+#data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+}
+
+#data-table thead {
+  background: var(--primary);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+#data-table thead th {
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+}
+
+#data-table tbody tr:nth-child(even) {
+  background: rgba(90, 159, 107, 0.08);
+}
+
+#data-table tbody tr:hover {
+  background: rgba(90, 159, 107, 0.18);
+}
+
+#data-table tbody td {
+  padding: 0.5rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.table-container {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+}
