@@ -13,8 +13,8 @@ window.initChart3 = async function () {
         .filter(y => y >= 1990 && y <= 2021)
         .sort((a, b) => a - b);
 
-    const slider = document.getElementById("yearSlider");
-    const label = document.getElementById("yearLabel");
+    const slider = document.getElementById("chart3-yearSlider");
+    const label = document.getElementById("chart3-yearLabel");
 
     if (slider && label) {
         slider.min = years[0];
