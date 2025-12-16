@@ -112,6 +112,7 @@ window.initChart3 = async function () {
                 .style("opacity", 1)
                 .html(
                     `<strong>${d.properties.name}</strong><br>
+                    Year: ${years[currentYearIndex]}<br>
                     PM2.5: ${dataMap.get(d.id) ?? "No data"}`
                 );
         })

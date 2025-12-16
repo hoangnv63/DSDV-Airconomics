@@ -251,11 +251,11 @@ function renderYear(year) {
       .on("mouseenter", function (e, d) {
         chartG.selectAll("circle").attr("opacity", 0.25);
         d3.select(this).attr("opacity", 1).attr("stroke-width", 2);
-
         tooltip.style("opacity", 1)
           .html(`
             <strong>${d.country}</strong><br>
             ${d.region}<br>
+            Year: ${year}<br>
             PM2.5: ${d.pm25}<br>
             GDP: ${d3.format(",")(d.gdp)}<br>
             Population: ${d3.format(",")(d.pop)}
