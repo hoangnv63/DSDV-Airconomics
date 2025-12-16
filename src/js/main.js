@@ -28,61 +28,88 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ------------------ LOAD DATASET TABLE ------------------
   async function loadDatasetTable() {
-    const dataSection = document.querySelector("#data");
-    const table = dataSection.querySelector("#data-table");
+  const dataSection = document.querySelector("#data");
+  const table = dataSection.querySelector("#data-table");
+  const tableBody = table.querySelector("tbody");
+  const countryFilter = document.querySelector("#countryFilter");
 
-    // Wrap table in chart-wrapper if not already
-    let wrapper = dataSection.querySelector(".chart-wrapper");
-    if (!wrapper) {
-      wrapper = document.createElement("div");
-      wrapper.classList.add("chart-wrapper");
+  // Wrap table in chart-wrapper if not already
+  let wrapper = dataSection.querySelector(".chart-wrapper");
+  if (!wrapper) {
+    wrapper = document.createElement("div");
+    wrapper.classList.add("chart-wrapper");
 
-      const tableWrapper = document.createElement("div");
-      tableWrapper.style.overflowX = "auto";
-      tableWrapper.style.overflowY = "auto";
-      tableWrapper.style.maxHeight = "600px";
+    const tableWrapper = document.createElement("div");
+    tableWrapper.style.overflowX = "auto";
+    tableWrapper.style.overflowY = "auto";
+    tableWrapper.style.maxHeight = "600px";
 
-      tableWrapper.appendChild(table);
-      wrapper.appendChild(tableWrapper);
-      dataSection.appendChild(wrapper);
-    }
+    tableWrapper.appendChild(table);
+    wrapper.appendChild(tableWrapper);
+    dataSection.appendChild(wrapper);
+  }
 
-    // Clear existing rows
-    const tableBody = table.querySelector("tbody");
+  // Load CSV data
+  const rawData = await d3.csv("../data/processed_data.csv");
+
+  // ---------------- SORT Z → A by country name ----------------
+  rawData.sort((a, b) =>
+    b.REF_AREA_LABEL.localeCompare(a.REF_AREA_LABEL)
+  );
+
+  // ---------------- POPULATE FILTER ----------------
+  const countries = Array.from(
+    new Set(rawData.map(d => d.REF_AREA_LABEL))
+  ).sort((a, b) => a.localeCompare(b));
+
+  countryFilter.innerHTML =
+    `<option value="all">All countries</option>` +
+    countries.map(c => `<option value="${c}">${c}</option>`).join("");
+
+  // ---------------- RENDER FUNCTION ----------------
+  function renderTable(filterValue = "all") {
     tableBody.innerHTML = "";
 
-    // Load CSV data
-    const data = await d3.csv("../data/processed_data.csv");
+    rawData
+      .filter(d => filterValue === "all" || d.REF_AREA_LABEL === filterValue)
+      .forEach((d, i) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${d.REF_AREA_LABEL}</td>
+          <td>${d.REF_AREA}</td>
+          <td>${d.continent}</td>
+          <td>${d.year}</td>
+          <td>${d.factor}</td>
+          <td>${d.value}</td>
+        `;
 
-    data.forEach((d, i) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${d.REF_AREA_LABEL}</td>
-        <td>${d.REF_AREA}</td>
-        <td>${d.continent}</td>
-        <td>${d.year}</td>
-        <td>${d.factor}</td>
-        <td>${d.value}</td>
-      `;
-
-      // Alternate row background
-      row.style.background = i % 2 === 0
-        ? "rgba(90,159,107,0.08)"
-        : "rgba(255,255,255,0.05)";
-
-      // Hover effect
-      row.addEventListener("mouseenter", () => {
-        row.style.background = "rgba(90,159,107,0.18)";
-      });
-      row.addEventListener("mouseleave", () => {
+        // Alternate row background (low opacity)
         row.style.background = i % 2 === 0
-          ? "rgba(90,159,107,0.08)"
-          : "rgba(255,255,255,0.05)";
-      });
+          ? "rgba(90,159,107,0.06)"
+          : "rgba(255,255,255,0.04)";
 
-      tableBody.appendChild(row);
-    });
+        // Hover effect
+        row.addEventListener("mouseenter", () => {
+          row.style.background = "rgba(90,159,107,0.16)";
+        });
+        row.addEventListener("mouseleave", () => {
+          row.style.background = i % 2 === 0
+            ? "rgba(90,159,107,0.06)"
+            : "rgba(255,255,255,0.04)";
+        });
+
+        tableBody.appendChild(row);
+      });
   }
+
+  // Initial render (Z → A)
+  renderTable();
+
+  // Filter listener
+  countryFilter.addEventListener("change", (e) => {
+    renderTable(e.target.value);
+  });
+}
 
   loadDatasetTable(); 
 
