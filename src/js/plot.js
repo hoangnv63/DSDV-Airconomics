@@ -113,6 +113,26 @@ function initChart1() {
     chartG.append("g")
       .call(d3.axisLeft(yScale));
 
+    // X-axis title
+    chartG.append("text")
+      .attr("x", innerWidth / 2)
+      .attr("y", innerHeight + 45)
+      .attr("text-anchor", "middle")
+      .style("font-size", "13px")
+      .style("fill", "#222")
+      .text("GDP per Capita (USD, log scale)");
+
+    // Y-axis title
+    chartG.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -innerHeight / 2)
+      .attr("y", -55)
+      .attr("text-anchor", "middle")
+      .style("font-size", "13px")
+      .style("fill", "#222")
+      .text("PM2.5 Concentration (µg/m³)");
+
+
     // -------- YEAR WATERMARK --------
     yearWatermark = chartG.append("text")
       .attr("x", innerWidth / 2)
