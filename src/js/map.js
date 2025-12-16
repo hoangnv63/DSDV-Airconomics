@@ -7,26 +7,36 @@ window.initChart3 = async function () {
     );
     const csv = await d3.csv("../data/processed_data.csv");
 
-    const years = Array.from(new Set(csv
-        .filter(d => d.factor === "pm25")
-        .map(d => +d.year)))
+    const years = Array.from(
+        new Set(
+            csv
+                .filter(d => d.factor === "pm25")
+                .map(d => +d.year)
+        )
+    )
         .filter(y => y >= 1990 && y <= 2021)
         .sort((a, b) => a - b);
 
+    let currentYearIndex = years.indexOf(2020);
+    let isPlaying = false;
+    let playTimer = null;
+
     const slider = document.getElementById("chart3-yearSlider");
     const label = document.getElementById("chart3-yearLabel");
+    const playBtn = document.getElementById("chart3-playBtn");
 
-    if (slider && label) {
-        slider.min = years[0];
-        slider.max = years[years.length - 1];
-        slider.value = 2020;
-        label.textContent = "2020";
-    }
+    slider.min = years[0];
+    slider.max = years[years.length - 1];
+    slider.step = 1;
+    slider.value = years[currentYearIndex];
+    label.textContent = years[currentYearIndex];
 
     const tooltip = d3.select("body")
         .append("div")
         .attr("class", "tooltip")
-        .style("opacity", 0);
+        .style("position", "absolute")
+        .style("opacity", 0)
+        .style("pointer-events", "none");
 
     const container = d3.select("#chart3");
     container.selectAll("*").remove();
@@ -51,61 +61,52 @@ window.initChart3 = async function () {
         csv.forEach(d => {
             if (d.factor !== "pm25") return;
             if (+d.year !== year) return;
+
             const iso = (d.REF_AREA || "").trim().toUpperCase();
-            let v = d.value;
-            if (v) v = v.toString().trim().replace(",", ".");
-            const num = parseFloat(v);
-            if (iso && !isNaN(num)) map.set(iso, num);
+            const val = parseFloat(
+                (d.value || "").toString().replace(",", ".")
+            );
+
+            if (iso && !isNaN(val)) map.set(iso, val);
         });
         return map;
     }
 
-    let dataMap = makeLookup(2020);
+    let dataMap = makeLookup(years[currentYearIndex]);
 
-    const countries = g
-        .selectAll("path")
+    const countries = g.selectAll("path")
         .data(geo.features)
         .enter()
         .append("path")
         .attr("d", path)
         .attr("stroke", "#222")
         .attr("stroke-width", 0.8)
-        .attr("pointer-events", "all")
-        .attr("fill", d => {
-            const iso = (d.id || "").trim().toUpperCase();
-            const val = dataMap.get(iso);
-            if (val == null || isNaN(val)) return "#e0e0e0";
-            if (val < 10) return "#ffe5e5";
-            if (val < 20) return "#ffb3b3";
-            if (val < 30) return "#ff8080";
-            if (val < 40) return "#ff3333";
-            if (val < 50) return "#8b0404ff";
-            return "#470808ff";
-        })
+        .attr("fill", "#e0e0e0")
         .on("mouseover", (event, d) => {
-            const iso = (d.id || "").trim().toUpperCase();
+            const iso = (d.id || "").toUpperCase();
             const val = dataMap.get(iso);
+
             tooltip
                 .style("opacity", 1)
-                .html(`<strong>${d.properties.name}</strong><br>PM2.5: ${val ?? "No data"}`);
+                .html(
+                    `<strong>${d.properties.name}</strong><br>
+                     PM2.5: ${val ?? "No data"}`
+                );
+
             d3.select(event.currentTarget)
-                .attr("stroke-width", 2.5)
+                .attr("stroke-width", 2)
                 .attr("stroke", "#000");
         })
         .on("mousemove", event => {
             tooltip
-                .style("left", (event.pageX + 14) + "px")
-                .style("top", (event.pageY + 14) + "px");
+                .style("left", (event.pageX + 12) + "px")
+                .style("top", (event.pageY + 12) + "px");
         })
         .on("mouseout", event => {
             tooltip.style("opacity", 0);
             d3.select(event.currentTarget)
                 .attr("stroke-width", 0.8)
                 .attr("stroke", "#222");
-        })
-        .on("click", (event, d) => {
-            event.stopPropagation();
-            zoomToCountry(d);
         });
 
     const zoom = d3.zoom()
@@ -114,45 +115,55 @@ window.initChart3 = async function () {
 
     svg.call(zoom);
 
-    function zoomToCountry(d) {
-        const [[x0, y0], [x1, y1]] = path.bounds(d);
-        const scale = Math.min(
-            8,
-            0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height)
-        );
+    function renderYear(year) {
+        label.textContent = year;
+        dataMap = makeLookup(year);
 
-        const translate = [
-            width / 2 - scale * (x0 + x1) / 2,
-            height / 2 - scale * (y0 + y1) / 2
-        ];
-
-        svg.transition()
-            .duration(750)
-            .call(
-                zoom.transform,
-                d3.zoomIdentity
-                    .translate(translate[0], translate[1])
-                    .scale(scale)
-            );
-    }
-
-    if (slider && label) {
-        slider.addEventListener("input", function () {
-            const y = Number(this.value);
-            label.textContent = y;
-            dataMap = makeLookup(y);
-
-            countries.attr("fill", d => {
-                const iso = (d.id || "").trim().toUpperCase();
+        countries
+            .transition()
+            .duration(500)
+            .attr("fill", d => {
+                const iso = (d.id || "").toUpperCase();
                 const val = dataMap.get(iso);
-                if (val == null || isNaN(val)) return "#e0e0e0";
+                if (val == null) return "#e0e0e0";
                 if (val < 10) return "#ffe5e5";
                 if (val < 20) return "#ffb3b3";
                 if (val < 30) return "#ff8080";
                 if (val < 40) return "#ff3333";
-                if (val < 50) return "#8b0404ff";
-                return "#470808ff";
+                if (val < 50) return "#8b0404";
+                return "#470808";
             });
-        });
     }
+
+    slider.addEventListener("input", function () {
+        const y = +this.value;
+        currentYearIndex = years.indexOf(y);
+        renderYear(y);
+    });
+
+    playBtn.addEventListener("click", () => {
+        if (!isPlaying) {
+            isPlaying = true;
+            playBtn.textContent = "Pause";
+
+            playTimer = setInterval(() => {
+                if (currentYearIndex < years.length - 1) {
+                    currentYearIndex++;
+                    const y = years[currentYearIndex];
+                    slider.value = y;
+                    renderYear(y);
+                } else {
+                    clearInterval(playTimer);
+                    isPlaying = false;
+                    playBtn.textContent = "▶ Play";
+                }
+            }, 900);
+        } else {
+            clearInterval(playTimer);
+            isPlaying = false;
+            playBtn.textContent = "▶ Play";
+        }
+    });
+
+    renderYear(years[currentYearIndex]);
 };
