@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airconomics - Environmental Data Visualization</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body>
+    <div class="page-container">
+        <div class="background"></div>
+
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 6C9.79 6 8 7.79 8 10C8 11.5 9 12.8 10.3 13.3C9.5 13.9 9 14.9 9 16C9 18.2 10.8 20 13 20"
+                            fill="currentColor"/>
+                    </svg>
+                    <span>Airconomics</span>
+                </div>
+
+                <nav class="navigation">
+                    <a href="#" class="nav-link" data-target="home">Home</a>
+                    <a href="#" class="nav-link" data-target="data">Our Dataset</a>
+                    <a href="#" class="nav-link" data-target="#chart1-section">Scatter Plot</a>
+                    <a href="#" class="nav-link" data-target="#chart2-section">Line Chart</a>
+                    <a href="#" class="nav-link" data-target="#chart3-section">Choropleth</a>
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            <section id="home" class="home-section">
+                <div class="home-content">
+                    <h1>Airconomics</h1>
+                    <p class="subtitle">
+                    Exploring the relationship between air quality, population, and economic growth
+                    </p>
+
+                    <p>
+                    Air pollution is not just an environmental issue. It is deeply connected to
+                    economic development, population growth, and global inequality.
+                    This project visualizes how <strong>PM2.5 air pollution</strong> has evolved
+                    across countries and over time, and how it correlates with
+                    <strong>GDP</strong> and <strong>population</strong>.
+                    </p>
+
+                    <p>
+                    Through interactive charts and maps, users can explore global trends,
+                    compare individual countries against the world average,
+                    and observe long-term environmental patterns from <strong>1990 to 2020</strong>.
+                    </p>
+
+                    <ul class="home-features">
+                    <li><strong>Bubble chart</strong> comparing GDP, PM2.5, and population</li>
+                    <li><strong>Line chart</strong> tracking PM2.5 trends by country vs world average</li>
+                    <li><strong>Choropleth map</strong> visualizing global PM2.5 distribution by year</li>
+                    </ul>
+
+                    <p class="data-note">
+                    <strong>Dataset source</strong>: processed global environmental and economic indicators
+                    (PM2.5, GDP, population).
+                    </p>
+                </div>
+            </section>
+
+            <section id="data" class="dataset-section">
+                <div class="chart-wrapper">
+                    <div class="section-header">
+                    <h2>Our Dataset</h2>
+                    <p>Explore the processed global environmental and economic indicators (PM2.5, GDP, population)</p>
+                    </div>
+                    <div class="data-controls" style="margin-bottom: 16px;">
+                        <label>
+                            Country:
+                            <select id="countryFilter">
+                            <option value="all">All countries</option>
+                            </select>
+                        </label>
+                        <label style="margin-left: 12px;">
+                            Year:
+                            <select id="yearFilter">
+                            <option value="all">All years</option>
+                            </select>
+                        </label>
+                        <label style="margin-left: 12px;">
+                            Factor:
+                            <select id="factorFilter">
+                            <option value="all">All factors</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="table-container" style="max-height: 500px; overflow-y: auto;">
+                    <table id="data-table">
+                        <thead>
+                        <tr>
+                            <th>Country</th>
+                            <th>Code</th>
+                            <th>Continent</th>
+                            <th>Year</th>
+                            <th>Factor</th>
+                            <th>Value</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="chart1-section" class="chart-section">
+                <div class="chart-wrapper">
+                    <div class="section-header">
+                        <h2>Chart 1 — GDP vs PM2.5 (bubble)</h2>
+                        <p>Bubble size = population. X-axis = GDP (log), Y-axis = PM2.5</p>
+                    </div>
+                    <div class="chart-controls">
+                        <button id="playBtn">▶ Play</button>
+                        <label>
+                            Region:
+                            <select id="regionFilter">
+                            <option value="all">All</option>
+                            </select>
+                        </label>
+                        <label>
+                            Year: <span id="yearLabel">1990</span>
+                        </label>
+                        <input id="yearSlider" type="range" min="1990" max="2021" step="1">
+                        </div>
+                    <div id="chart1" class="chart-container"></div>
+                </div>
+            </section>
+
+            <section id="chart2-section" class="chart-section">
+                <div class="chart-wrapper">
+                    <div class="section-header">
+                        <h2>Chart 2 — Global PM2.5 Trend</h2>
+                        <p>Average PM2.5 across all countries by year (line chart)</p>
+                    </div>
+                    <div id="chart2" class="chart-container"></div>
+                </div>
+            </section>
+
+            <section id="chart3-section" class="chart-section">
+                <div class="chart-wrapper">
+                    <div class="section-header">
+                        <h2>Chart 3 — World Map (PM2.5)</h2>
+                        <p>Choropleth of PM2.5 for a chosen year</p>
+                    </div>
+
+                    <div class="year-control">
+                        <button id="chart3-playBtn">▶ Play</button>
+                        <label>Year: <span id="chart3-yearLabel">2020</span></label>
+                        <input id="chart3-yearSlider" type="range" min="1990" max="2021" value="2020" step="1">
+                    </div>
+
+                    <div id="chart3" class="chart-container"></div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2025 Airconomics - IU Data Science and Data Visualization.</p>
+            <p>Nguyen Huynh Ngan Anh, Nguyen Viet Hoang, Vu Nhu Hue Lan</p>
+        </footer>
+    </div>
+
+    <script src="js/plot.js"></script>
+    <script src="js/line.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/datatable.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
