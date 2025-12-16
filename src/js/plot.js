@@ -244,22 +244,19 @@ function renderYear(year) {
       .attr("stroke-width", 1)
       .attr("opacity", 0.85)
       .on("mousemove", (event, d) => {
-        tooltip
-          .style("opacity", 1)
-          .style("left", (event.pageX + 12) + "px")
-          .style("top", (event.pageY - 28) + "px")
-          .html(`
-            <div><strong>${d.country}</strong></div>
-            <div>Region: ${d.region}</div>
-            <div>Year: ${currentYear}</div>
-            <div>PM2.5: ${d.pm25.toFixed(1)} µg/m³</div>
-            <div>GDP per capita: ${d3.format(",")(d.gdp)}</div>
-            <div>Population: ${d3.format(",")(d.population)}</div>
-          `);
-      })
-      .on("mouseleave", () => {
-        tooltip.style("opacity", 0);
-      })
+  tooltip
+    .style("opacity", 1)
+    .style("left", (event.pageX + 12) + "px")
+    .style("top", (event.pageY - 28) + "px")
+    .html(`
+      <div><strong>${d.country}</strong></div>
+      <div>Region: ${d.region}</div>
+      <div>Year: ${currentYear}</div>
+      <div>PM2.5: ${d.pm25.toFixed(1)} µg/m³</div>
+      <div>GDP per capita: ${d3.format(",")(d.gdp)}</div>
+      <div>Population: ${d3.format(",")(d.pop)}</div>
+    `);
+})
       .on("mouseleave", () => {
         tooltip.style("opacity", 0);
       })
