@@ -8,11 +8,7 @@ window.initChart3 = async function () {
     const csv = await d3.csv("../data/processed_data.csv");
 
     const years = Array.from(
-        new Set(
-            csv
-                .filter(d => d.factor === "pm25")
-                .map(d => +d.year)
-        )
+        new Set(csv.filter(d => d.factor === "pm25").map(d => +d.year))
     )
         .filter(y => y >= 1990 && y <= 2021)
         .sort((a, b) => a - b);
@@ -48,6 +44,21 @@ window.initChart3 = async function () {
         .attr("width", width)
         .attr("height", height);
 
+    /* -------- YEAR WATERMARK (BEHIND MAP) -------- */
+
+    const yearWatermark = svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height / 2)
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "middle")
+        .style("font-size", 180)
+        .style("fill", "#000")
+        .style("opacity", 0.06)
+        .style("pointer-events", "none")
+        .text(years[currentYearIndex]);
+
+    /* ---------------- MAP LAYER ---------------- */
+
     const g = svg.append("g").attr("id", "map-layer");
 
     const projection = d3.geoNaturalEarth1()
@@ -72,6 +83,16 @@ window.initChart3 = async function () {
         return map;
     }
 
+    function colorForValue(val) {
+        if (val == null) return "#e0e0e0";
+        if (val < 10) return "#ffe5e5";
+        if (val < 20) return "#ffb3b3";
+        if (val < 30) return "#ff8080";
+        if (val < 40) return "#ff3333";
+        if (val < 50) return "#8b0404";
+        return "#470808";
+    }
+
     let dataMap = makeLookup(years[currentYearIndex]);
 
     const countries = g.selectAll("path")
@@ -81,21 +102,17 @@ window.initChart3 = async function () {
         .attr("d", path)
         .attr("stroke", "#222")
         .attr("stroke-width", 0.8)
-        .attr("fill", "#e0e0e0")
+        .attr("fill", d => colorForValue(dataMap.get(d.id)))
         .on("mouseover", (event, d) => {
-            const iso = (d.id || "").toUpperCase();
-            const val = dataMap.get(iso);
+            d3.select(event.currentTarget)
+                .attr("fill-opacity", 0.55);
 
             tooltip
                 .style("opacity", 1)
                 .html(
                     `<strong>${d.properties.name}</strong><br>
-                     PM2.5: ${val ?? "No data"}`
+                     PM2.5: ${dataMap.get(d.id) ?? "No data"}`
                 );
-
-            d3.select(event.currentTarget)
-                .attr("stroke-width", 2)
-                .attr("stroke", "#000");
         })
         .on("mousemove", event => {
             tooltip
@@ -103,11 +120,17 @@ window.initChart3 = async function () {
                 .style("top", (event.pageY + 12) + "px");
         })
         .on("mouseout", event => {
-            tooltip.style("opacity", 0);
             d3.select(event.currentTarget)
-                .attr("stroke-width", 0.8)
-                .attr("stroke", "#222");
+                .attr("fill-opacity", 1);
+
+            tooltip.style("opacity", 0);
+        })
+        .on("click", (event, d) => {
+            event.stopPropagation();
+            zoomToCountry(d);
         });
+
+    /* ---------------- ZOOM ---------------- */
 
     const zoom = d3.zoom()
         .scaleExtent([1, 8])
@@ -115,30 +138,43 @@ window.initChart3 = async function () {
 
     svg.call(zoom);
 
+    function zoomToCountry(d) {
+        const [[x0, y0], [x1, y1]] = path.bounds(d);
+        const scale = Math.min(
+            8,
+            0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height)
+        );
+
+        const translate = [
+            width / 2 - scale * (x0 + x1) / 2,
+            height / 2 - scale * (y0 + y1) / 2
+        ];
+
+        svg.transition()
+            .duration(200)   // fast but trackable
+            .call(
+                zoom.transform,
+                d3.zoomIdentity
+                    .translate(translate[0], translate[1])
+                    .scale(scale)
+            );
+    }
+
+    /* ---------------- YEAR UPDATE ---------------- */
+
     function renderYear(year) {
         label.textContent = year;
+        yearWatermark.text(year);
         dataMap = makeLookup(year);
 
-        countries
-            .transition()
-            .duration(500)
-            .attr("fill", d => {
-                const iso = (d.id || "").toUpperCase();
-                const val = dataMap.get(iso);
-                if (val == null) return "#e0e0e0";
-                if (val < 10) return "#ffe5e5";
-                if (val < 20) return "#ffb3b3";
-                if (val < 30) return "#ff8080";
-                if (val < 40) return "#ff3333";
-                if (val < 50) return "#8b0404";
-                return "#470808";
-            });
+        countries.attr("fill", d =>
+            colorForValue(dataMap.get(d.id))
+        );
     }
 
     slider.addEventListener("input", function () {
-        const y = +this.value;
-        currentYearIndex = years.indexOf(y);
-        renderYear(y);
+        currentYearIndex = years.indexOf(+this.value);
+        renderYear(+this.value);
     });
 
     playBtn.addEventListener("click", () => {
@@ -164,6 +200,58 @@ window.initChart3 = async function () {
             playBtn.textContent = "▶ Play";
         }
     });
+
+    /* ---------------- LEGEND (TOP RIGHT) ---------------- */
+
+    const legendData = [
+        { label: "< 10", min: 0, max: 10, color: "#ffe5e5" },
+        { label: "10 – 20", min: 10, max: 20, color: "#ffb3b3" },
+        { label: "20 – 30", min: 20, max: 30, color: "#ff8080" },
+        { label: "30 – 40", min: 30, max: 40, color: "#ff3333" },
+        { label: "40 – 50", min: 40, max: 50, color: "#8b0404" },
+        { label: "≥ 50", min: 50, max: Infinity, color: "#470808" }
+    ];
+
+    const legend = svg.append("g")
+        .attr("transform", `translate(${width - 170}, 20)`);
+
+    legend.append("rect")
+        .attr("x", -14)
+        .attr("y", -14)
+        .attr("width", 155)
+        .attr("height", legendData.length * 24 + 24)
+        .attr("rx", 8)
+        .attr("fill", "rgba(255,255,255,0.75)")
+        .attr("stroke", "#999")
+        .attr("stroke-width", 0.5);
+
+    const row = legend.selectAll(".legend-row")
+        .data(legendData)
+        .enter()
+        .append("g")
+        .attr("transform", (d, i) => `translate(0, ${i * 24})`)
+        .style("cursor", "pointer")
+        .on("mouseover", (_, d) => {
+            countries.attr("fill-opacity", c => {
+                const v = dataMap.get(c.id);
+                return v >= d.min && v < d.max ? 1 : 0.15;
+            });
+        })
+        .on("mouseout", () => {
+            countries.attr("fill-opacity", 1);
+        });
+
+    row.append("rect")
+        .attr("width", 18)
+        .attr("height", 18)
+        .attr("fill", d => d.color);
+
+    row.append("text")
+        .attr("x", 26)
+        .attr("y", 13)
+        .style("font-size", "12px")
+        .style("fill", "#111")
+        .text(d => d.label);
 
     renderYear(years[currentYearIndex]);
 };
