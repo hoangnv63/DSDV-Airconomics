@@ -103,15 +103,16 @@ window.initChart3 = async function () {
         .attr("stroke", "#222")
         .attr("stroke-width", 0.8)
         .attr("fill", d => colorForValue(dataMap.get(d.id)))
-        .on("mouseover", (event, d) => {
+        .on("mouseenter", (event, d) => {
+            countries.attr("fill-opacity", 0.25);
             d3.select(event.currentTarget)
-                .attr("fill-opacity", 0.55);
+                .attr("fill-opacity", 1);
 
             tooltip
                 .style("opacity", 1)
                 .html(
                     `<strong>${d.properties.name}</strong><br>
-                     PM2.5: ${dataMap.get(d.id) ?? "No data"}`
+                    PM2.5: ${dataMap.get(d.id) ?? "No data"}`
                 );
         })
         .on("mousemove", event => {
@@ -119,10 +120,8 @@ window.initChart3 = async function () {
                 .style("left", (event.pageX + 12) + "px")
                 .style("top", (event.pageY + 12) + "px");
         })
-        .on("mouseout", event => {
-            d3.select(event.currentTarget)
-                .attr("fill-opacity", 1);
-
+        .on("mouseleave", () => {
+            countries.attr("fill-opacity", 1);
             tooltip.style("opacity", 0);
         })
         .on("click", (event, d) => {
