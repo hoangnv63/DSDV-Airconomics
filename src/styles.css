@@ -205,39 +205,23 @@ main {
   max-width: 100%;
 }
 
-/* Insights */
-.insights {
-  background: var(--secondary);
-  border-left: 4px solid var(--primary);
-  padding: 2rem;
-  border-radius: 8px;
+.chart-container circle,
+.chart-container path {
+  pointer-events: all;
 }
 
-.insights h3 {
-  color: var(--primary);
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
+#chart2 svg {
+  pointer-events: none;
 }
 
-.insights ul {
-  list-style: none;
+#chart2 .overlay,
+#chart2 circle,
+#chart2 path {
+  pointer-events: all;
 }
 
-.insights li {
-  color: var(--text-dark);
-  margin-bottom: 0.75rem;
-  padding-left: 1.5rem;
-  position: relative;
-}
 
-.insights li::before {
-  content: "✓";
-  position: absolute;
-  left: 0;
-  color: var(--primary);
-  font-weight: bold;
-}
-
+/* Tooltip */
 .tooltip {
     position: absolute; 
     pointer-events: none;
