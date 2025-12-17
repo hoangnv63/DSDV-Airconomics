@@ -147,44 +147,6 @@ function initChart1() {
       .style("font-weight", "500")
       .text("WHO guideline: 5 µg/m³");
 
-    // Add legend for continents/regions
-    const legend = chartG.append("g")
-      .attr("class", "legend")
-      .attr("transform", `translate(${innerWidth - 120}, 20)`);
-
-    const legendData = regions;
-    const legendItemHeight = 20;
-
-    legend.append("text")
-      .attr("x", 0)
-      .attr("y", -5)
-      .style("font-size", "12px")
-      .style("font-weight", "bold")
-      .text("Continents");
-
-    const legendItems = legend.selectAll(".legend-item")
-      .data(legendData)
-      .enter()
-      .append("g")
-      .attr("class", "legend-item")
-      .attr("transform", (d, i) => `translate(0, ${10 + i * legendItemHeight})`);
-
-    legendItems.append("circle")
-      .attr("class", "legend-circle")
-      .attr("cx", 8)
-      .attr("cy", 0)
-      .attr("r", 6)
-      .attr("fill", d => REGION_COLORS(d))
-      .attr("stroke", "#000")
-      .attr("stroke-width", 0.8);
-
-    legendItems.append("text")
-      .attr("x", 20)
-      .attr("y", 0)
-      .attr("dy", "0.35em")
-      .style("font-size", "11px")
-      .text(d => d);
-
     // Year watermark
     yearWatermark = chartG.append("text")
       .attr("x", innerWidth / 2)
