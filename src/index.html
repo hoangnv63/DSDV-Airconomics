@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoViz - Environmental Data Visualization</title>
+    <title>Airconomics - Environmental Data Visualization</title>
     <link rel="stylesheet" href="styles.css">
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -77,6 +77,26 @@
                     <h2>Our Dataset</h2>
                     <p>Explore the processed global environmental and economic indicators (PM2.5, GDP, population)</p>
                     </div>
+                    <div class="data-controls" style="margin-bottom: 16px;">
+                        <label>
+                            Country:
+                            <select id="countryFilter">
+                            <option value="all">All countries</option>
+                            </select>
+                        </label>
+                        <label style="margin-left: 12px;">
+                            Year:
+                            <select id="yearFilter">
+                            <option value="all">All years</option>
+                            </select>
+                        </label>
+                        <label style="margin-left: 12px;">
+                            Factor:
+                            <select id="factorFilter">
+                            <option value="all">All factors</option>
+                            </select>
+                        </label>
+                    </div>
                     <div class="table-container" style="max-height: 500px; overflow-y: auto;">
                     <table id="data-table">
                         <thead>
@@ -137,6 +157,7 @@
                     </div>
 
                     <div class="year-control">
+                        <button id="chart3-playBtn">▶ Play</button>
                         <label>Year: <span id="chart3-yearLabel">2020</span></label>
                         <input id="chart3-yearSlider" type="range" min="1990" max="2021" value="2020" step="1">
                     </div>
@@ -155,6 +176,7 @@
     <script src="js/plot.js"></script>
     <script src="js/line.js"></script>
     <script src="js/map.js"></script>
+    <script src="js/datatable.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

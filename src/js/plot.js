@@ -1,20 +1,20 @@
 const margin = { top: 40, right: 40, bottom: 60, left: 80 };
 
+// ---------------- TOOLTIP ----------------
 const tooltip = d3.select("body")
   .append("div")
   .attr("class", "tooltip")
   .style("position", "absolute")
   .style("pointer-events", "none")
   .style("opacity", 0)
-  .style("background-color", "rgba(0,0,0,0.7)")
+  .style("background", "rgba(0,0,0,0.75)")
   .style("color", "#fff")
   .style("padding", "8px")
   .style("border-radius", "4px")
   .style("font-size", "12px")
-  .style("line-height", "1.4")
   .style("z-index", 1000);
 
-// Globals
+// ---------------- GLOBALS ----------------
 let countries = [];
 let allYears = [];
 let currentYearIndex = 0;
@@ -23,10 +23,10 @@ let isPlaying = false;
 let playTimer = null;
 let currentRegion = "all";
 
-let svg, chartG, xScale, yScale, rScale, xAxisG, yAxisG, yearWatermark;
+let svg, chartG, xScale, yScale, rScale, yearWatermark;
 let REGION_COLORS;
 
-// ---------------- DATA LOADING ----------------
+// ---------------- DATA ----------------
 async function loadDataLong() {
   const raw = await d3.csv("../data/processed_data.csv", d => ({
     country: d.REF_AREA_LABEL,
@@ -40,10 +40,7 @@ async function loadDataLong() {
   const byCountry = d3.group(raw, d => d.country);
 
   return Array.from(byCountry, ([country, rows]) => {
-    const gdp = {};
-    const pm25 = {};
-    const population = {};
-
+    const gdp = {}, pm25 = {}, population = {};
     rows.forEach(r => {
       if (r.factor === "gdp") gdp[r.year] = r.value;
       if (r.factor === "pm25") pm25[r.year] = r.value;
@@ -53,25 +50,22 @@ async function loadDataLong() {
     return {
       country,
       region: rows[0].continent || "Other",
-      gdp,
-      pm25,
-      population
+      gdp, pm25, population
     };
   }).filter(d => d.country !== 'World');
 }
 
-// ----------------- INITIALIZATION -----------------
+// ---------------- INIT ----------------
 function initChart1() {
   loadDataLong().then(data => {
     countries = data;
 
-    // Years
     allYears = Object.keys(countries[0].pm25).map(Number).sort((a, b) => a - b);
     currentYearIndex = 0;
 
-    // Container
     const container = d3.select("#chart1");
     container.selectAll("*").remove();
+
     const width = container.node().clientWidth || 900;
     const height = 520;
 
@@ -85,14 +79,13 @@ function initChart1() {
     chartG = svg.append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Scales
+    // -------- SCALES --------
     const allPoints = [];
     countries.forEach(c => {
       allYears.forEach(y => {
-        const gdp = c.gdp[y];
-        const pm25 = c.pm25[y];
-        const pop = c.population[y];
-        if (gdp > 0 && pm25 != null && pop > 0) allPoints.push({ gdp, pm25, pop });
+        if (c.gdp[y] && c.pm25[y] && c.population[y]) {
+          allPoints.push({ gdp: c.gdp[y], pm25: c.pm25[y], pop: c.population[y] });
+        }
       });
     });
 
@@ -108,29 +101,28 @@ function initChart1() {
 
     rScale = d3.scaleSqrt()
       .domain(d3.extent(allPoints, d => d.pop))
-      .range([3, 30]);
+      .range([4, 30]);
 
-    // Color scale
-    const regions = Array.from(new Set(countries.map(c => c.region)));
-    REGION_COLORS = d3.scaleOrdinal()
-      .domain(regions)
-      .range(d3.schemeTableau10);
+    const regions = Array.from(new Set(countries.map(d => d.region)));
+    REGION_COLORS = d3.scaleOrdinal(regions, d3.schemeTableau10);
 
-    // Axes
-    xAxisG = chartG.append("g")
+    chartG.append("g")
       .attr("transform", `translate(0,${innerHeight})`)
       .call(d3.axisBottom(xScale).ticks(6, "~s"));
 
-    yAxisG = chartG.append("g")
+    chartG.append("g")
       .call(d3.axisLeft(yScale));
 
-    // Axis labels
+    // X-axis title
     chartG.append("text")
-      .attr("x", innerWidth)
+      .attr("x", innerWidth / 2)
       .attr("y", innerHeight + 45)
-      .attr("text-anchor", "end")
-      .text("GDP per capita");
+      .attr("text-anchor", "middle")
+      .style("font-size", "13px")
+      .style("fill", "#222")
+      .text("GDP per Capita (USD, log scale)");
 
+    // Y-axis title
     chartG.append("text")
       .attr("y", -15)
       .text("PM2.5 (µg/m³)");
@@ -201,64 +193,81 @@ function initChart1() {
       .attr("dominant-baseline", "middle")
       .style("font-size", Math.min(innerWidth, innerHeight) * 0.4)
       .style("fill", "#000")
-      .style("opacity", 0.1)
+      .style("opacity", 0.08)
       .style("pointer-events", "none")
-      .text(allYears[currentYearIndex]);
+      .lower();
 
-    // Region dropdown
+    // -------- REGION FILTER --------
     const regionSelect = d3.select("#regionFilter");
     regionSelect.selectAll("option")
       .data(["all", ...regions])
       .join("option")
       .attr("value", d => d)
-      .text(d => d);
+      .text(d => d === "all" ? "World (All Regions)" : d);
 
-    regionSelect.on("change", function() {
+    regionSelect.on("change", function () {
       currentRegion = this.value;
-      renderYear(allYears[currentYearIndex]);
+      renderYear(currentYear);
     });
 
-    // Year slider + label
+    // -------- SLIDER --------
     const slider = d3.select("#yearSlider");
-    const label = d3.select("#yearLabel");
-
     slider
       .attr("min", allYears[0])
-      .attr("max", allYears[allYears.length - 1])
+      .attr("max", allYears.at(-1))
       .attr("step", 1)
-      .attr("value", allYears[currentYearIndex])
-      .on("input", function(event) {
-        const y = +event.target.value;
-        currentYearIndex = allYears.indexOf(y);
-        renderYear(y);
+      .property("value", allYears[0]) 
+      .on("input", e => {
+        currentYearIndex = allYears.indexOf(+e.target.value);
+        renderYear(+e.target.value);
       });
 
-    // Play button
-    const playBtn = d3.select("#playBtn");
-    playBtn.on("click", () => {
-      if (!isPlaying) {
+    // -------- PLAY --------
+    d3.select("#playBtn").on("click", function () {
+      if (isPlaying) {
+        clearInterval(playTimer);
+        isPlaying = false;
+        this.textContent = "▶ Play";
+      } else {
         isPlaying = true;
-        playBtn.text("Pause");
+        this.textContent = "Pause";
         playTimer = setInterval(() => {
           if (currentYearIndex < allYears.length - 1) {
             currentYearIndex++;
             slider.property("value", allYears[currentYearIndex]);
             renderYear(allYears[currentYearIndex]);
-          } else {
-            clearInterval(playTimer);
-            isPlaying = false;
-            playBtn.text("▶ Play");
           }
-        }, 900);
-      } else {
-        clearInterval(playTimer);
-        isPlaying = false;
-        playBtn.text("▶ Play");
+        }, 400);
       }
     });
 
-    // First render
-    renderYear(allYears[currentYearIndex]);
+    // -------- STATIC LEGEND --------
+    const legend = svg.append("g")
+      .attr("transform", `translate(${width - 190}, 40)`);
+
+    legend.append("rect")
+      .attr("width", 170)
+      .attr("height", regions.length * 22 + 10)
+      .attr("fill", "rgba(255,255,255,0.7)")
+      .attr("rx", 8);
+
+    const legendItem = legend.selectAll(".legend-item")
+      .data(regions)
+      .enter()
+      .append("g")
+      .attr("transform", (d, i) => `translate(10,${10 + i * 22})`);
+
+    legendItem.append("rect")
+      .attr("width", 14)
+      .attr("height", 14)
+      .attr("fill", d => REGION_COLORS(d));
+
+    legendItem.append("text")
+      .attr("x", 20)
+      .attr("y", 12)
+      .text(d => d);
+
+    renderYear(allYears[0]);
   });
 }
 
@@ -266,15 +275,18 @@ function initChart1() {
 function renderYear(year) {
   currentYear = year;
   d3.select("#yearLabel").text(year);
+  yearWatermark.text(year);
 
-  // Filter data
-  let data = countries.map(c => ({
-    country: c.country,
-    region: c.region,
-    gdp: c.gdp[year],
-    pm25: c.pm25[year],
-    pop: c.population[year]
-  })).filter(d => d.gdp > 0 && d.pm25 != null && d.pop > 0);
+  let data = countries
+    .filter(c => currentRegion === "all" || c.region === currentRegion)
+    .map(c => ({
+      country: c.country,
+      region: c.region,
+      gdp: c.gdp[year],
+      pm25: c.pm25[year],
+      pop: c.population[year]
+    }))
+    .filter(d => d.gdp && d.pm25 && d.pop);
 
   if (currentRegion !== "all") {
     data = data.filter(d => d.region === currentRegion);
@@ -290,52 +302,50 @@ function renderYear(year) {
     });
 
   // Bind data
-  const dots = chartG.selectAll("circle.data-circle").data(data, d => d.country);
+  const dots = chartG.selectAll("circle").data(data, d => d.country);
 
   dots.join(
     enter => enter.append("circle")
       .attr("class", "data-circle")
       .attr("cx", d => xScale(d.gdp))
       .attr("cy", d => yScale(d.pm25))
-      .attr("r", 0)
+      .attr("r", d => rScale(d.pop))
       .attr("fill", d => REGION_COLORS(d.region))
       .attr("stroke", "#000")
       .attr("stroke-width", 1)
       .attr("opacity", 0.85)
-      .on("mousemove", (event, d) => {
-        tooltip
-          .style("opacity", 1)
-          .style("left", (event.pageX + 12) + "px")
-          .style("top", (event.pageY - 28) + "px")
+      .on("mouseenter", function (e, d) {
+        chartG.selectAll("circle").attr("opacity", 0.25);
+        d3.select(this).attr("opacity", 1).attr("stroke-width", 2);
+        tooltip.style("opacity", 1)
           .html(`
-            <div><strong>${d.country}</strong></div>
-            <div>Region: ${d.region}</div>
-            <div>Year: ${currentYear}</div>
-            <div>PM2.5: ${d.pm25.toFixed(1)} µg/m³</div>
-            <div>GDP per capita: ${d3.format(",")(d.gdp)}</div>
-            <div>Population: ${d3.format(",")(d.population)}</div>
+            <strong>${d.country}</strong><br>
+            ${d.region}<br>
+            Year: ${year}<br>
+            PM2.5: ${d.pm25}<br>
+            GDP: ${d3.format(",")(d.gdp)}<br>
+            Population: ${d3.format(",")(d.pop)}
           `);
       })
-      .on("mouseleave", () => {
-        tooltip.style("opacity", 0);
+      .on("mousemove", e => {
+        tooltip.style("left", e.pageX + 12 + "px")
+               .style("top", e.pageY - 28 + "px");
       })
       .on("mouseleave", () => {
         tooltip.style("opacity", 0);
-      })
-      .transition().duration(500)
-      .attr("r", d => rScale(d.pop)),
+        chartG.selectAll("circle")
+          .attr("opacity", 0.85)
+          .attr("stroke-width", 1);
+      }),
 
-    update => update.transition().duration(500)
+    update => update
+      .transition().duration(120)
       .attr("cx", d => xScale(d.gdp))
       .attr("cy", d => yScale(d.pm25))
-      .attr("r", d => rScale(d.pop))
-      .attr("fill", d => REGION_COLORS(d.region)),
+      .attr("r", d => rScale(d.pop)),
 
-    exit => exit.transition().duration(300)
-      .attr("r", 0)
-      .remove()
+    exit => exit.remove()
   );
 }
 
-// Expose to main.js
 window.initChart1 = initChart1;

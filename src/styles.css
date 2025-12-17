@@ -148,7 +148,7 @@ body {
 
 /* Main Content */
 main {
-  padding-top: 88px; /* enough for sticky header */
+  padding-top: 88px;
 }
 
 /* Chart Sections */
@@ -288,18 +288,22 @@ main {
 }
 
 /* Home / Hero section */
+#home {
+  margin-top: -88px;
+}
+
 .home-section {
-  min-height: 85vh;
+  min-height: calc(100vh - 88px);
   display: flex;
-  align-items: left;
+  align-items: center;
   justify-content: center;
-  padding: 4rem 1.5rem;
+  padding: 2rem 1.5rem;
 }
 
 .home-content {
   max-width: 780px;
   backdrop-filter: blur(6px);
-  padding: 3rem 3.5rem;
+  padding: 0.5rem 3.5rem;
   border-radius: 18px;
   box-shadow: 0 12px 30px rgba(0,0,0,0.3);
 }
