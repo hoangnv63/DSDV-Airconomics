@@ -83,14 +83,21 @@ window.initChart3 = async function () {
         return map;
     }
 
+    const pm25ColorScale = [
+        { label: "< 10", min: 0,  max: 10,  color: "#FFF8D9" },
+        { label: "10 – 20", min: 10, max: 20, color: "#E5C6AE" },
+        { label: "20 – 30", min: 20, max: 30, color: "#CB9582" },
+        { label: "30 – 40", min: 30, max: 40, color: "#B26357" },
+        { label: "40 – 50", min: 40, max: 50, color: "#98322B" },
+        { label: "≥ 50",    min: 50, max: Infinity, color: "#580000ff" }
+    ];
+
     function colorForValue(val) {
         if (val == null) return "#e0e0e0";
-        if (val < 10) return "#ffe5e5";
-        if (val < 20) return "#ffb3b3";
-        if (val < 30) return "#ff8080";
-        if (val < 40) return "#ff3333";
-        if (val < 50) return "#8b0404";
-        return "#470808";
+        const bucket = pm25ColorScale.find(
+            d => val >= d.min && val < d.max
+        );
+        return bucket ? bucket.color : "#e0e0e0";
     }
 
     let dataMap = makeLookup(years[currentYearIndex]);
@@ -151,7 +158,7 @@ window.initChart3 = async function () {
         ];
 
         svg.transition()
-            .duration(200)   // fast but trackable
+            .duration(200)
             .call(
                 zoom.transform,
                 d3.zoomIdentity
@@ -203,14 +210,7 @@ window.initChart3 = async function () {
 
     /* ---------------- LEGEND (TOP RIGHT) ---------------- */
 
-    const legendData = [
-        { label: "< 10", min: 0, max: 10, color: "#ffe5e5" },
-        { label: "10 – 20", min: 10, max: 20, color: "#ffb3b3" },
-        { label: "20 – 30", min: 20, max: 30, color: "#ff8080" },
-        { label: "30 – 40", min: 30, max: 40, color: "#ff3333" },
-        { label: "40 – 50", min: 40, max: 50, color: "#8b0404" },
-        { label: "≥ 50", min: 50, max: Infinity, color: "#470808" }
-    ];
+    const legendData = pm25ColorScale;
 
     const legend = svg.append("g")
         .attr("transform", `translate(${width - 170}, 20)`);
