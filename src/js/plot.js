@@ -57,7 +57,7 @@ async function loadDataLong() {
       pm25,
       population
     };
-  });
+  }).filter(d => d.country !== 'World');
 }
 
 // ----------------- INITIALIZATION -----------------
@@ -134,6 +134,64 @@ function initChart1() {
     chartG.append("text")
       .attr("y", -15)
       .text("PM2.5 (µg/m³)");
+
+    // Add horizontal dashed line at 5 microgram/cubic meter
+    chartG.append("line")
+      .attr("x1", 0)
+      .attr("x2", innerWidth)
+      .attr("y1", yScale(5))
+      .attr("y2", yScale(5))
+      .attr("stroke", "#ff0000")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-dasharray", "5,5")
+      .style("opacity", 0.7);
+
+    chartG.append("text")
+      .attr("x", innerWidth - 5)
+      .attr("y", yScale(5) - 5)
+      .attr("text-anchor", "end")
+      .style("font-size", "11px")
+      .style("fill", "#ff0000")
+      .style("font-weight", "500")
+      .text("WHO guideline: 5 µg/m³");
+
+    // Add legend for continents/regions
+    const legend = chartG.append("g")
+      .attr("class", "legend")
+      .attr("transform", `translate(${innerWidth - 120}, 20)`);
+
+    const legendData = regions;
+    const legendItemHeight = 20;
+
+    legend.append("text")
+      .attr("x", 0)
+      .attr("y", -5)
+      .style("font-size", "12px")
+      .style("font-weight", "bold")
+      .text("Continents");
+
+    const legendItems = legend.selectAll(".legend-item")
+      .data(legendData)
+      .enter()
+      .append("g")
+      .attr("class", "legend-item")
+      .attr("transform", (d, i) => `translate(0, ${10 + i * legendItemHeight})`);
+
+    legendItems.append("circle")
+      .attr("class", "legend-circle")
+      .attr("cx", 8)
+      .attr("cy", 0)
+      .attr("r", 6)
+      .attr("fill", d => REGION_COLORS(d))
+      .attr("stroke", "#000")
+      .attr("stroke-width", 0.8);
+
+    legendItems.append("text")
+      .attr("x", 20)
+      .attr("y", 0)
+      .attr("dy", "0.35em")
+      .style("font-size", "11px")
+      .text(d => d);
 
     // Year watermark
     yearWatermark = chartG.append("text")
@@ -232,10 +290,11 @@ function renderYear(year) {
     });
 
   // Bind data
-  const dots = chartG.selectAll("circle").data(data, d => d.country);
+  const dots = chartG.selectAll("circle.data-circle").data(data, d => d.country);
 
   dots.join(
     enter => enter.append("circle")
+      .attr("class", "data-circle")
       .attr("cx", d => xScale(d.gdp))
       .attr("cy", d => yScale(d.pm25))
       .attr("r", 0)

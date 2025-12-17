@@ -84,7 +84,7 @@ window.initLineChart = async function () {
         .style("justify-content", "center");
 
     let selectedCountries = [];
-    const color = d3.scaleOrdinal(d3.schemeCategory10).domain(allCountries);
+    const color = d3.scaleOrdinal(d3.schemeTableau10).domain(allCountries);
     const countryColorMap = {};
 
     function updateSelectedList() {
@@ -134,6 +134,23 @@ window.initLineChart = async function () {
             .style("font-size", "0.9rem")
             .style("color", "#333");
 
+        // Add WHO guideline legend
+        const whoLegend = legendContainer.append("div")
+            .style("display", "flex")
+            .style("align-items", "center")
+            .style("gap", "6px");
+
+        whoLegend.append("div")
+            .style("width", "16px")
+            .style("height", "2px")
+            .style("border-top", "2px dashed #ff0000");
+
+        whoLegend.append("span")
+            .text("WHO guideline")
+            .style("font-size", "0.9rem")
+            .style("color", "#ff0000")
+            .style("font-weight", "500");
+
         selectedCountries.forEach(c => {
             const item = legendContainer.append("div")
                 .style("display", "flex")
@@ -156,7 +173,7 @@ window.initLineChart = async function () {
         const selected = dropdown.property("value");
         if (selected && !selectedCountries.includes(selected)) {
             selectedCountries.push(selected);
-            countryColorMap[selected] = color(selected);
+            countryColorMap[selected] = color(selectedCountries.length - 1);
             updateSelectedList();
             updateLegend();
             updateChart();
@@ -191,11 +208,27 @@ window.initLineChart = async function () {
         .style("font-weight", "bold")
         .text("PM2.5 over time by Country");
 
-    const x = d3.scaleLinear().domain([1990, 2021]).range([0, width]);
-    const y = d3.scaleLinear().domain([0, d3.max(pmData, d => +d.value)]).range([height, 0]);
+    const x = d3.scaleLinear().domain([1990, 2020]).range([0, width]);
+    const y = d3.scaleLinear().domain([0, d3.max(pmData, d => +d.value)]).range([height, 0]).nice();
 
     svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x).tickFormat(d3.format("d")));
-    svg.append("g").call(d3.axisLeft(y));
+    
+    // Get nice tick values and ensure 5 is included
+    const yTickValues = y.ticks(10);
+    if (!yTickValues.includes(5) && 5 >= y.domain()[0] && 5 <= y.domain()[1]) {
+        yTickValues.push(5);
+        yTickValues.sort((a, b) => a - b);
+    }
+    
+    const yAxis = svg.append("g").call(d3.axisLeft(y).tickValues(yTickValues));
+
+    // Highlight the 5 µg/m³ tick on y-axis
+    yAxis.selectAll(".tick")
+        .filter(d => Math.abs(d - 5) < 0.01)
+        .select("text")
+        .style("fill", "#ff0000")
+        .style("font-weight", "bold")
+        .style("font-size", "12px");
 
     svg.append("text")
         .attr("x", width / 2)
@@ -210,7 +243,26 @@ window.initLineChart = async function () {
         .attr("y", -50)
         .attr("text-anchor", "middle")
         .style("font-size", "14px")
-        .text("PM2.5");
+        .text("PM2.5 (µg/m³)");
+
+    // Add horizontal dashed line at 5 microgram/cubic meter
+    svg.append("line")
+        .attr("x1", 0)
+        .attr("x2", width)
+        .attr("y1", y(5))
+        .attr("y2", y(5))
+        .attr("stroke", "#ff0000")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-dasharray", "5,5")
+        .style("opacity", 1);
+
+    svg.append("text")
+        .attr("x", width - 5)
+        .attr("y", y(5) - 5)
+        .attr("text-anchor", "end")
+        .style("font-size", "11px")
+        .style("fill", "#ff0000")
+        .style("font-weight", "500");
 
     const tooltip = d3.select("body").append("div")
         .attr("class", "tooltip")
