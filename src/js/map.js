@@ -84,12 +84,12 @@ window.initChart3 = async function () {
     }
 
     const pm25ColorScale = [
-        { label: "< 10", min: 0,  max: 10,  color: "#FFF8D9" },
-        { label: "10 – 20", min: 10, max: 20, color: "#E5C6AE" },
-        { label: "20 – 30", min: 20, max: 30, color: "#CB9582" },
-        { label: "30 – 40", min: 30, max: 40, color: "#B26357" },
-        { label: "40 – 50", min: 40, max: 50, color: "#98322B" },
-        { label: "≥ 50",    min: 50, max: Infinity, color: "#580000ff" }
+        { label: "< 10",    min: 0,  max: 10,  color: "#FFE0CC" },
+        { label: "10 – 20", min: 10, max: 20, color: "#FFB38A" },
+        { label: "20 – 30", min: 20, max: 30, color: "#FF7A4D" },
+        { label: "30 – 40", min: 30, max: 40, color: "#E6452F" },
+        { label: "40 – 50", min: 40, max: 50, color: "#B92D1F" },
+        { label: "≥ 50",    min: 50, max: Infinity, color: "#7A1414" }
     ];
 
     function colorForValue(val) {
@@ -141,6 +141,7 @@ window.initChart3 = async function () {
 
     const zoom = d3.zoom()
         .scaleExtent([1, 8])
+        .filter(event => !event.target.closest("input"))
         .on("zoom", e => g.attr("transform", e.transform));
 
     svg.call(zoom);
