@@ -181,8 +181,11 @@ window.initChart3 = async function () {
     }
 
     slider.addEventListener("input", function () {
-        currentYearIndex = years.indexOf(+this.value);
-        renderYear(+this.value);
+        const year = +this.value;
+        // find closest available year in the dataset
+        const closestYear = years.reduce((a, b) => Math.abs(b - year) < Math.abs(a - year) ? b : a);
+        currentYearIndex = years.indexOf(closestYear);
+        renderYear(closestYear);
     });
 
     playBtn.addEventListener("click", () => {
@@ -191,16 +194,19 @@ window.initChart3 = async function () {
             playBtn.textContent = "Pause";
 
             playTimer = setInterval(() => {
-                if (currentYearIndex < years.length - 1) {
-                    currentYearIndex++;
-                    const y = years[currentYearIndex];
-                    slider.value = y;
-                    renderYear(y);
-                } else {
+                let nextYear = +slider.value + 1;
+                if (nextYear > years[years.length - 1]) {
                     clearInterval(playTimer);
                     isPlaying = false;
                     playBtn.textContent = "▶ Play";
+                    return;
                 }
+
+                slider.value = nextYear;
+                // snap to nearest available year
+                const closestYear = years.reduce((a, b) => Math.abs(b - nextYear) < Math.abs(a - nextYear) ? b : a);
+                currentYearIndex = years.indexOf(closestYear);
+                renderYear(closestYear);
             }, 900);
         } else {
             clearInterval(playTimer);
