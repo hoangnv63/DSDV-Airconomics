@@ -283,7 +283,7 @@ function renderYear(year) {
           .html(`
             <strong>${d.country}</strong><br>
             ${d.region}<br>
-            Year: ${year}<br>
+            Year: ${currentYear}<br>
             PM2.5: ${d.pm25}<br>
             GDP: ${d3.format(",")(d.gdp)}<br>
             Population: ${d3.format(",")(d.pop)}
