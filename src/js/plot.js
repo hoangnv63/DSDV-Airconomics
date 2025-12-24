@@ -52,7 +52,7 @@ async function loadDataLong() {
       region: rows[0].continent || "Other",
       gdp, pm25, population
     };
-  });
+  }).filter(d => d.country !== 'World');
 }
 
 // ---------------- INIT ----------------
@@ -124,16 +124,30 @@ function initChart1() {
 
     // Y-axis title
     chartG.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("x", -innerHeight / 2)
-      .attr("y", -55)
-      .attr("text-anchor", "middle")
-      .style("font-size", "13px")
-      .style("fill", "#222")
-      .text("PM2.5 Concentration (µg/m³)");
+      .attr("y", -15)
+      .text("PM2.5 (µg/m³)");
 
+    // Add horizontal dashed line at 5 microgram/cubic meter
+    chartG.append("line")
+      .attr("x1", 0)
+      .attr("x2", innerWidth)
+      .attr("y1", yScale(5))
+      .attr("y2", yScale(5))
+      .attr("stroke", "#ff0000")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-dasharray", "5,5")
+      .style("opacity", 0.7);
 
-    // -------- YEAR WATERMARK --------
+    chartG.append("text")
+      .attr("x", innerWidth - 5)
+      .attr("y", yScale(5) - 5)
+      .attr("text-anchor", "end")
+      .style("font-size", "11px")
+      .style("fill", "#ff0000")
+      .style("font-weight", "500")
+      .text("WHO guideline: 5 µg/m³");
+
+    // Year watermark
     yearWatermark = chartG.append("text")
       .attr("x", innerWidth / 2)
       .attr("y", innerHeight / 2)
@@ -236,11 +250,25 @@ function renderYear(year) {
     }))
     .filter(d => d.gdp && d.pm25 && d.pop);
 
-  const dots = chartG.selectAll("circle")
-    .data(data, d => d.country);
+  if (currentRegion !== "all") {
+    data = data.filter(d => d.region === currentRegion);
+  }
+
+  // Update watermark
+  yearWatermark
+    .transition().duration(300)
+    .tween("text", function() {
+      const that = d3.select(this);
+      const i = d3.interpolateNumber(+that.text(), year);
+      return t => that.text(Math.round(i(t)));
+    });
+
+  // Bind data
+  const dots = chartG.selectAll("circle").data(data, d => d.country);
 
   dots.join(
     enter => enter.append("circle")
+      .attr("class", "data-circle")
       .attr("cx", d => xScale(d.gdp))
       .attr("cy", d => yScale(d.pm25))
       .attr("r", d => rScale(d.pop))
@@ -255,7 +283,7 @@ function renderYear(year) {
           .html(`
             <strong>${d.country}</strong><br>
             ${d.region}<br>
-            Year: ${year}<br>
+            Year: ${currentYear}<br>
             PM2.5: ${d.pm25}<br>
             GDP: ${d3.format(",")(d.gdp)}<br>
             Population: ${d3.format(",")(d.pop)}
